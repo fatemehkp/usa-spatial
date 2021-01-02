@@ -1,17 +1,17 @@
 # usa-spatial
 USA Regions, States, Counties, Zipcodes, etc\
 
-1. region\
+1. Region\
 3,4,5,9 Region Category for each State\
 
-2. urbanicity\
+2. Urbanicity\
 Zipcode Urbanicity\
 
-3. ses\
+3. SES\
 Gross Income data from IRS\
 By Zipcode and Year\
 
-4. brfss\
+4. BRFSS\
 Behavioral Risk Factor Surveillance System (BRFSS)\
 By County and Month\
 
