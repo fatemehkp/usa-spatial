@@ -1,0 +1,75 @@
+---
+title: "US States, Reigions, Counties, Zipcodes, etc"
+author: "Fatemeh Kazemi"
+date: "12-27-2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Last Edit: 12-31-2020
+
+### This program:
+  
+  (1) Reads the different region categorization from us_states csv file,
+  ... creates "State.Region.RDa"
+  (2) Read and cleans cross-walk files between EPA AQS Sites and Zipcodes
+  (3) Read and cleans cross-walk files between US Counties and Zipcodes
+
+```{r load packages}
+library(tidyverse)
+library(here)
+```
+
+```{r Region category for states}
+### Different region categorization for US states
+### ... 3 categories : Greven et al. 2011
+### ... 4 categories : US Census
+### ... 5 categories : xxx
+### ... 9 categories : NOAA
+dt.state.region <- read.csv(here('data', 'raw', 'us_states.csv')) %>% 
+  transmute(State.Name=Name,
+            State,
+            State.Code=as.factor(sprintf("%02d", as.numeric(as.character(state.code)))),
+            Region.III=region.iii, #Greven's Study
+            Region.V=region.v, #US Census
+            Region.IV=region.iv, #xxx
+            Region.NOAA=region.noaa) #NOAA
+
+save(dt.state.region, file=here('data', 'processed','state-region.RDa'))
+```
+
+```{r Site-Zipcode crosswalk files}
+dt.site.zip.raw = data.frame()
+for (i in seq(2000,2008,1)){
+  dt0 <- read.delim(here('data','raw','buffer_dist_24mile',paste0('Dist_Zip_',i,'.txt')), sep = '|')
+  dt0$Year <-  i
+  dt.site.zip.raw <- rbind(dt.site.zip.raw, dt0)
+}
+
+save(dt.site.zip.raw, file=here('data', 'raw','site-zip-raw.RDa'))
+
+dt.site.zip <- dt.site.zip.raw %>% 
+  transmute(Zip.Code = str_pad(ZIP, 5, pad = "0"),
+            Zip.Type = X_Object,
+            Year,
+            Site.ID = as.factor(sprintf("%02d-%03d-%04d",
+                                  state_code, county_code, site_num)),
+            Dist = Centroid_Dist) %>% 
+  arrange(Zip.Code, Year, Dist)
+
+save(dt.site.zip, file=here('data', 'processed','site-zip.RDa'))
+
+#temp = list.files(path = here('data','raw','buffer_dist_24mile'), pattern="*.txt", full.names = T)
+#myfiles = lapply(temp, read.delim)
+```
+
+```{r}
+dt.county.zip <- read.csv(here('data', 'raw', 'ZIP-COUNTY-FIPS_2017-06.csv')) %>%
+  transmute(Zip.Code = str_pad(ZIP, 5, pad = "0"),
+            St.County = str_pad(STCOUNTYFP, 5, pad = "0")) %>% 
+  arrange(Zip.Code)
+  
+save(dt.county.zip, file=here('data', 'processed','county-zip.RDa'))
+```
+

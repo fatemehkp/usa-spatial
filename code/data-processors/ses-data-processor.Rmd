@@ -1,0 +1,52 @@
+---
+title: "Income Data from IRS"
+author: "Fatemeh Kazemi"
+date: "01-02-2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+### This program:
+  (1) Reads and cleans income data by IRS and fill the gaps
+
+```{r load packages}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+#year
+#zipcode  
+#zip_level: zip SES  (normalized by State)
+#state_level: state SES 
+#zip_unnormalized: zip SES non-normalized)
+#state
+
+dt.ses.raw <- read.csv(here('data','raw','gross_income_by_state.csv'), sep = '') %>% 
+  transmute(Zip.Code = str_pad(zipcode, 5, pad = "0"),
+            State = state,
+            Year = year,
+            SES.Zip.Unorm = zip_unnormalized,
+            SES.Zip.Norm = zip_level,
+            SES.State = state_level) %>% 
+  arrange(Zip.Code, Year)
+
+zip.list <- dt.ses.raw %>% 
+  distinct(Zip.Code, State)
+
+dt.ses.zip = data.frame()
+for (i in 2000:2008){
+  dt0 <- tibble(zip.list, Year =i)
+  dt.ses.zip <- rbind(dt.ses.zip, dt0)
+}
+
+dt.ses.zip <- full_join(dt.ses.zip, dt.ses.raw) %>% 
+  arrange(Zip.Code, Year) %>% 
+  group_by(Zip.Code) %>% 
+  fill(SES.Zip.Unorm:SES.State, .direction = "downup")
+
+save(dt.ses.zip, file = here('data', 'processed', 'ses-zip.RDa'))
+write.csv(dt.ses.zip, file = here('data', 'processed', 'ses_zip.csv'))
+```
+

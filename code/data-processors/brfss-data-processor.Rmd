@@ -1,0 +1,39 @@
+---
+title: "Income Data from IRS"
+author: "Fatemeh Kazemi"
+date: "01-02-2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+### This program:
+  (1) Reads and cleans behavioral data by BRFSS
+
+```{r load packages}
+library(tidyverse)
+library(here)
+library(sas7bdat)
+```
+
+```{r }
+dt.brfss.raw <- read.sas7bdat(here('data','raw','brfss0212.sas7bdat')) %>% 
+    transmute(State.County = fips,
+            Year = year,
+            Month = month,
+            BMI = X_bmi_Mean,
+            Race = X_raceg_Prop,
+            Smoke = X_rfsmok_Prop,
+            Diabt = X_diabetes_Prop,
+            Asthma = X_asthma_Prop,
+            Drink = X_rfdrhv_Prop)
+
+dt.brfss.raw <- dt.brfss.raw[complete.cases(dt.brfss.raw),]
+save(dt.brfss.raw, file = here('data', 'raw', 'brfss-raw.RDa'))
+
+dt.brfss.raw %>% 
+  group_by(Year) %>% 
+  summarise(n_county = length(unique(State.County)))
+
+
+```
