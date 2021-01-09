@@ -60,6 +60,9 @@ dt.site.zip <- dt.site.zip.raw %>%
 
 save(dt.site.zip, file=here('data', 'processed','site-zip.RDa'))
 
+dt.site.zip %>% distinct(Zip.Code) %>% nrow() #40,711
+dt.site.zip  %>% distinct(Site.ID) %>% nrow() #18,863
+
 #temp = list.files(path = here('data','raw','buffer_dist_24mile'), pattern="*.txt", full.names = T)
 #myfiles = lapply(temp, read.delim)
 ```
@@ -69,7 +72,25 @@ dt.county.zip <- read.csv(here('data', 'raw', 'ZIP-COUNTY-FIPS_2017-06.csv')) %>
   transmute(Zip.Code = str_pad(ZIP, 5, pad = "0"),
             St.County = str_pad(STCOUNTYFP, 5, pad = "0")) %>% 
   arrange(Zip.Code)
-  
+
 save(dt.county.zip, file=here('data', 'processed','county-zip.RDa'))
+
+dt.county.zip %>% distinct(Zip.Code) %>% nrow() #39,456
+dt.county.zip %>% distinct(St.County) %>% nrow() #3223
+
+dt.county.zip %>% group_by(Zip.Code) %>% 
+  summarise(n = n()) %>% filter(n > 1) %>%  
+  nrow() #10,354 zipcodes are located in more than one county
+```
+
+```{r}
+dt.locset.zip <- read.csv(here('data', 'raw', 'RUCA2004.csv')) %>% 
+  transmute(Zip.Code = str_pad(zip_code, 5, pad = "0"),
+            USR,
+            Urban = ifelse(USR == 1, 1, 0)) %>% 
+  arrange(Zip.Code)
+            
+save(dt.locset.zip, file=here('data', 'processed','locset-zip.RDa')) 
+write.csv(dt.locset.zip, file=here('data', 'processed','locset-zip.csv')) 
 ```
 

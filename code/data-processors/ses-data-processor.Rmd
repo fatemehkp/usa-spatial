@@ -9,6 +9,8 @@ output:
 
 ### This program:
   (1) Reads and cleans income data by IRS and fill the gaps
+     i. https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi
+  (2) Calculates site-level SES using the zipcodes in x-mile bufferzone of site
 
 ```{r load packages}
 library(tidyverse)
@@ -48,5 +50,57 @@ dt.ses.zip <- full_join(dt.ses.zip, dt.ses.raw) %>%
 
 save(dt.ses.zip, file = here('data', 'processed', 'ses-zip.RDa'))
 write.csv(dt.ses.zip, file = here('data', 'processed', 'ses_zip.csv'))
+```
+
+```{r}
+load(here('data', 'processed', 'ses-zip.RDa'))
+load(here('data', 'processed', 'site-zip.RDa'))
+
+# Count number of zipcode in each dataset
+z.ses <- dt.ses.zip %>% distinct(Zip.Code) #40341
+z.site <- dt.site.zip %>% distinct(Zip.Code) #40711
+z.diff <- setdiff(z.ses$Zip.Code, z.site$Zip.Code) #2652
+
+# 6-mile bufferzone around monitoring site
+dt.ses.site.bz6 <- dt.site.zip %>% 
+  inner_join(dt.ses.zip, by = c("Zip.Code", "Year")) %>% 
+  filter(Dist <= 6) %>% 
+  group_by(Site.ID, Year) %>% 
+  summarise(SES.Zip.Unorm = mean(SES.Zip.Unorm),
+            SES.Zip.Norm = mean(SES.Zip.Norm),
+            SES.State = mean(SES.State))
+
+save(dt.ses.site.bz6, file = here('data', 'processed', 'ses-site-bz6.RDa'))
+write.csv(dt.ses.site.bz6, file = here('data', 'processed', 'ses-site-bz6.csv'))
+
+dt.ses.site.bz6 %>% distinct(Site.ID) %>% nrow() #18157
+
+# 12-mile bufferzone around monitoring site
+dt.ses.site.bz12 <- dt.site.zip %>% 
+  inner_join(dt.ses.zip, by = c("Zip.Code", "Year")) %>% 
+  filter(Dist <= 12) %>% 
+  group_by(Site.ID, Year) %>% 
+  summarise(SES.Zip.Unorm = mean(SES.Zip.Unorm),
+            SES.Zip.Norm = mean(SES.Zip.Norm),
+            SES.State = mean(SES.State))
+
+save(dt.ses.site.bz12, file = here('data', 'processed', 'ses-site-bz12.RDa'))
+write.csv(dt.ses.site.bz12, file = here('data', 'processed', 'ses-site-bz12.csv'))
+
+dt.ses.site.bz12 %>% distinct(Site.ID) %>% nrow() #18664
+
+# 24-mile bufferzone around monitoring site
+dt.ses.site.bz24 <- dt.site.zip %>% 
+  inner_join(dt.ses.zip, by = c("Zip.Code", "Year")) %>% 
+  filter(Dist <= 24) %>% 
+  group_by(Site.ID, Year) %>% 
+  summarise(SES.Zip.Unorm = mean(SES.Zip.Unorm),
+            SES.Zip.Norm = mean(SES.Zip.Norm),
+            SES.State = mean(SES.State))
+
+save(dt.ses.site.bz24, file = here('data', 'processed', 'ses-site-bz24.RDa'))
+write.csv(dt.ses.site.bz24, file = here('data', 'processed', 'ses-site-bz24.csv'))
+
+dt.ses.site.bz12 %>% distinct(Site.ID) %>% nrow() #18664
 ```
 

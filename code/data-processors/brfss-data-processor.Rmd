@@ -14,26 +14,72 @@ output:
 library(tidyverse)
 library(here)
 library(sas7bdat)
+#library(zoo) #na.fill
 ```
 
 ```{r }
 dt.brfss.raw <- read.sas7bdat(here('data','raw','brfss0212.sas7bdat')) %>% 
-    transmute(State.County = fips,
-            Year = year,
-            Month = month,
-            BMI = X_bmi_Mean,
-            Race = X_raceg_Prop,
-            Smoke = X_rfsmok_Prop,
-            Diabt = X_diabetes_Prop,
-            Asthma = X_asthma_Prop,
-            Drink = X_rfdrhv_Prop)
+    transmute(St.County = fips,
+              Year = year,
+              Month = month,
+              BMI = X_bmi_Mean,
+              Race = X_raceg_Prop,
+              Smoke = X_rfsmok_Prop,
+              Diabt = X_diabetes_Prop,
+              Asthma = X_asthma_Prop,
+              Drink = X_rfdrhv_Prop) %>%
+  arrange(St.County, Year, Month) %>% 
+  group_by(St.County) %>% 
+  mutate_at(.vars = c("BMI","Race","Smoke","Diabt","Asthma","Drink"),
+            ~na.fill(.x, "extend"))
 
-dt.brfss.raw <- dt.brfss.raw[complete.cases(dt.brfss.raw),]
 save(dt.brfss.raw, file = here('data', 'raw', 'brfss-raw.RDa'))
 
 dt.brfss.raw %>% 
   group_by(Year) %>% 
-  summarise(n_county = length(unique(State.County)))
+  summarise(n_county = length(unique(St.County)))
+# min : 2002 > 146
+# max : 2010 > 302
 
-
+dt.brfss.raw %>% 
+  filter(Year < 2009) %>% 
+  distinct(St.County) %>% 
+  nrow() #438 # <2009:378
 ```
+
+```{r}
+load('C:\\Users\\fkazem01\\Box\\Projects\\PM Components\\data\\processed\\aqs-sites.RDa')
+
+dt.brfss.site <- dt.aqs.sites %>% 
+  transmute(Site.ID,
+            St.County = as.factor(paste(State.Code, County.Code, sep =""))) %>% 
+  inner_join(dt.brfss.raw) %>% 
+  select(-St.County)
+
+save(dt.brfss.site, file = here('data', 'processed', 'brfss-site.RDa'))
+write.csv(dt.brfss.site, file = here('data', 'processed', 'brfss-site.csv'))
+
+dt.brfss.site %>% distinct(Site.ID) %>% nrow() #3468 
+#388counties
+```
+
+```{r}
+load(here('data', 'processed','county-zip.RDa'))
+
+dt.brfss.zip <- dt.county.zip %>% 
+  inner_join(dt.brfss.raw) %>% 
+  group_by(Zip.Code, Year, Month) %>% 
+  summarise(BMI = mean(BMI),
+            Race = mean(Race),
+            Smoke = mean(Smoke),
+            Diabt = mean(Diabt),
+            Asthma = mean(Asthma),
+            Drink = mean(Drink)) %>% 
+  as.data.frame()
+
+save(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.RDa'))
+write.csv(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.csv'))
+
+dt.brfss.zip %>% distinct(Zip.Code) %>% nrow() #16218
+```
+
