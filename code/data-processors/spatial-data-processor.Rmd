@@ -67,7 +67,25 @@ dt.site.zip  %>% distinct(Site.ID) %>% nrow() #18,863
 #myfiles = lapply(temp, read.delim)
 ```
 
-```{r}
+```{r Closest Zipcode to each site}
+dt.site.zip.closest <- dt.site.zip %>% 
+  arrange(Site.ID, Year, Dist) %>% 
+  distinct(Site.ID, Year, .keep_all = T) %>% 
+  select(Site.ID, Year, Zip.Code, Zip.Type, Dist)
+
+save(dt.site.zip.closest, file=here('data', 'processed','site-zip-closest.RDa'))
+
+# closest zipcode to each site in 12-mile buffer
+dt.site.zip.closest.bz12 <- dt.site.zip.closest %>% 
+  filter(Dist <= 12) %>% 
+  select(Site.ID, Year, Zip.Code)
+
+save(dt.site.zip.closest.bz12, file=here('data', 'processed','site-zip-closest-bz12.RDa'))
+
+dt.site.zip.closest.bz12 %>% distinct(Site.ID) %>% nrow() #18677
+```
+
+```{r County-Zipcode crosswalk files}
 dt.county.zip <- read.csv(here('data', 'raw', 'ZIP-COUNTY-FIPS_2017-06.csv')) %>%
   transmute(Zip.Code = str_pad(ZIP, 5, pad = "0"),
             St.County = str_pad(STCOUNTYFP, 5, pad = "0")) %>% 
@@ -83,7 +101,7 @@ dt.county.zip %>% group_by(Zip.Code) %>%
   nrow() #10,354 zipcodes are located in more than one county
 ```
 
-```{r}
+```{r Location setting of each zipcode}
 dt.locset.zip <- read.csv(here('data', 'raw', 'RUCA2004.csv')) %>% 
   transmute(Zip.Code = str_pad(zip_code, 5, pad = "0"),
             USR,
