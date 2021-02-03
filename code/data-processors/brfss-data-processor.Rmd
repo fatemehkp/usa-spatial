@@ -16,6 +16,12 @@ library(here)
 library(sas7bdat)
 #library(zoo) #na.fill
 ```
+```{r}
+load('C:\\Users\\fkazem01\\Box\\Projects\\PM Components\\data\\processed\\aqs-sites.RDa')
+
+load(here('data', 'processed','county-zip.RDa'))
+
+```
 
 ```{r }
 dt.brfss.raw <- read.sas7bdat(here('data','raw','brfss0212.sas7bdat')) %>% 
@@ -48,8 +54,6 @@ dt.brfss.raw %>%
 ```
 
 ```{r}
-load('C:\\Users\\fkazem01\\Box\\Projects\\PM Components\\data\\processed\\aqs-sites.RDa')
-
 dt.brfss.site <- dt.aqs.sites %>% 
   transmute(Site.ID,
             St.County = as.factor(paste(State.Code, County.Code, sep =""))) %>% 
@@ -57,15 +61,14 @@ dt.brfss.site <- dt.aqs.sites %>%
   select(-St.County)
 
 save(dt.brfss.site, file = here('data', 'processed', 'brfss-site.RDa'))
-write.csv(dt.brfss.site, file = here('data', 'processed', 'brfss-site.csv'))
+write.csv(dt.brfss.site, file = here('data', 'processed', 'brfss-site.csv'),
+          row.names = F)
 
 dt.brfss.site %>% distinct(Site.ID) %>% nrow() #3468 
 #388counties
 ```
 
 ```{r}
-load(here('data', 'processed','county-zip.RDa'))
-
 dt.brfss.zip <- dt.county.zip %>% 
   inner_join(dt.brfss.raw) %>% 
   group_by(Zip.Code, Year, Month) %>% 
@@ -78,7 +81,8 @@ dt.brfss.zip <- dt.county.zip %>%
   as.data.frame()
 
 save(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.RDa'))
-write.csv(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.csv'))
+write.csv(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.csv'),
+          row.names = F)
 
 dt.brfss.zip %>% distinct(Zip.Code) %>% nrow() #16218
 ```

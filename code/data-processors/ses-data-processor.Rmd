@@ -71,7 +71,8 @@ dt.ses.site.bz6 <- dt.site.zip %>%
             SES.State = mean(SES.State))
 
 save(dt.ses.site.bz6, file = here('data', 'processed', 'ses-site-bz6.RDa'))
-write.csv(dt.ses.site.bz6, file = here('data', 'processed', 'ses-site-bz6.csv'))
+write.csv(dt.ses.site.bz6, file = here('data', 'processed', 'ses-site-bz6.csv'),
+          row.names = F)
 
 dt.ses.site.bz6 %>% distinct(Site.ID) %>% nrow() #18157
 
@@ -85,7 +86,8 @@ dt.ses.site.bz12 <- dt.site.zip %>%
             SES.State = mean(SES.State))
 
 save(dt.ses.site.bz12, file = here('data', 'processed', 'ses-site-bz12.RDa'))
-write.csv(dt.ses.site.bz12, file = here('data', 'processed', 'ses-site-bz12.csv'))
+write.csv(dt.ses.site.bz12, file = here('data', 'processed', 'ses-site-bz12.csv'),
+          row.names = F)
 
 dt.ses.site.bz12 %>% distinct(Site.ID) %>% nrow() #18664
 
@@ -99,7 +101,8 @@ dt.ses.site.bz24 <- dt.site.zip %>%
             SES.State = mean(SES.State))
 
 save(dt.ses.site.bz24, file = here('data', 'processed', 'ses-site-bz24.RDa'))
-write.csv(dt.ses.site.bz24, file = here('data', 'processed', 'ses-site-bz24.csv'))
+write.csv(dt.ses.site.bz24, file = here('data', 'processed', 'ses-site-bz24.csv'),
+          row.names = F)
 
 dt.ses.site.bz12 %>% distinct(Site.ID) %>% nrow() #18664
 ```

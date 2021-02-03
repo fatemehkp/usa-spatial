@@ -109,6 +109,7 @@ dt.locset.zip <- read.csv(here('data', 'raw', 'RUCA2004.csv')) %>%
   arrange(Zip.Code)
             
 save(dt.locset.zip, file=here('data', 'processed','locset-zip.RDa')) 
-write.csv(dt.locset.zip, file=here('data', 'processed','locset-zip.csv')) 
+write.csv(dt.locset.zip, file=here('data', 'processed','locset-zip.csv'),
+          row.names = F) 
 ```
 
