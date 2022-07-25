@@ -14,13 +14,11 @@ output:
 library(tidyverse)
 library(here)
 library(sas7bdat)
-#library(zoo) #na.fill
+library(zoo) #na.fill
 ```
 ```{r}
 load('C:\\Users\\fkazem01\\Box\\Projects\\PM Components\\data\\processed\\aqs-sites.RDa')
-
 load(here('data', 'processed','county-zip.RDa'))
-
 ```
 
 ```{r }
@@ -28,15 +26,16 @@ dt.brfss.raw <- read.sas7bdat(here('data','raw','brfss0212.sas7bdat')) %>%
     transmute(St.County = fips,
               Year = year,
               Month = month,
-              BMI = X_bmi_Mean,
-              Race = X_raceg_Prop,
-              Smoke = X_rfsmok_Prop,
-              Diabt = X_diabetes_Prop,
-              Asthma = X_asthma_Prop,
-              Drink = X_rfdrhv_Prop) %>%
+              X_bmi_Mean,
+              X_raceg_Prop,
+              X_rfsmok_Prop,
+              X_diabetes_Prop,
+              X_asthma_Prop,
+              X_rfdrhv_Prop) %>%
   arrange(St.County, Year, Month) %>% 
   group_by(St.County) %>% 
-  mutate_at(.vars = c("BMI","Race","Smoke","Diabt","Asthma","Drink"),
+  mutate_at(.vars = c("X_bmi_Mean","X_raceg_Prop","X_rfsmok_Prop",
+                      "X_diabetes_Prop","X_asthma_Prop","X_rfdrhv_Prop"),
             ~na.fill(.x, "extend"))
 
 save(dt.brfss.raw, file = here('data', 'raw', 'brfss-raw.RDa'))
@@ -72,18 +71,24 @@ dt.brfss.site %>% distinct(Site.ID) %>% nrow() #3468
 dt.brfss.zip <- dt.county.zip %>% 
   inner_join(dt.brfss.raw) %>% 
   group_by(Zip.Code, Year, Month) %>% 
-  summarise(BMI = mean(BMI),
-            Race = mean(Race),
-            Smoke = mean(Smoke),
-            Diabt = mean(Diabt),
-            Asthma = mean(Asthma),
-            Drink = mean(Drink)) %>% 
+  summarise(X_bmi_Mean = mean(X_bmi_Mean),
+            X_raceg_Prop = mean(X_raceg_Prop),
+            X_rfsmok_Prop = mean(X_rfsmok_Prop),
+            X_diabetes_Prop = mean(X_diabetes_Prop),
+            X_asthma_Prop = mean(X_asthma_Prop),
+            X_rfdrhv_Prop = mean(X_rfdrhv_Prop)) %>% 
   as.data.frame()
-
+              
 save(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.RDa'))
 write.csv(dt.brfss.zip, file = here('data', 'processed', 'brfss-zip.csv'),
           row.names = F)
 
 dt.brfss.zip %>% distinct(Zip.Code) %>% nrow() #16218
+
+dt.county.zip %>% 
+  inner_join(dt.brfss.raw) %>% 
+  filter(Year < 2009) %>% 
+  distinct(St.County) %>% 
+  nrow() #378
 ```
 
